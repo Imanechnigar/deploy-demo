@@ -1,0 +1,28 @@
+name: Delivery (human approves)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: mkdir site && cp index.html site/
+      - name: Test
+        run: grep -q "Deploy Demo" site/index.html
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    environment: production-approval
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy
+        run: |
+          echo "Deploying commit ${GITHUB_SHA::7} to production"
+          echo "### Deployed after approval" >> "$GITHUB_STEP_SUMMARY"
+          echo "A human clicked approve. Commit ${GITHUB_SHA::7} went live." >> "$GITHUB_STEP_SUMMARY"
